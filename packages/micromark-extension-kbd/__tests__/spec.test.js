@@ -1,4 +1,4 @@
-import micromark from 'micromark'
+import { micromark } from 'micromark'
 import micromarkKbd from '../lib/index'
 import micromarkKbdHtml from '../lib/html'
 
