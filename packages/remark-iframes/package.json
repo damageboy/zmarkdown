@@ -29,6 +29,8 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "micromark-extension-iframes": "file:../micromark-extension-iframes",
+    "micromark-util-sanitize-uri": "^1.0.0",
     "node-fetch": "^2.6.1"
   }
 }

@@ -1,0 +1,39 @@
+{
+  "name": "micromark-extension-iframes",
+  "version": "0.0.0",
+  "description": "Add Markdown syntax to handle iframes",
+  "type": "module",
+  "keywords": [
+    "micromark",
+    "iframes",
+    "plugin",
+    "extension"
+  ],
+  "author": "Titouan (Stalone) S. <talone@boxph.one>",
+  "homepage": "https://github.com/zestedesavoir/zmarkdown/tree/master/packages/micromark-extension-iframes",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zestedesavoir/zmarkdown.git#master"
+  },
+  "scripts": {
+    "pretest": "eslint .",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
+  },
+  "bugs": {
+    "url": "https://github.com/zestedesavoir/zmarkdown/issues"
+  },
+  "dependencies": {
+    "micromark-util-sanitize-uri": "^1.0.0"
+  }
+}
