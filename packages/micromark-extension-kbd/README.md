@@ -35,7 +35,7 @@ as `<kbd>` elements; can be passed in `htmlExtensions`).
 
 ##### `options`
 
-None for now, please come back later.
+- `options.charCode`: the pipe character used to start and end a keyboard entry. Defaults to `|`.
 
 ## License
 

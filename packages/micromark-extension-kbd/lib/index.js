@@ -1,6 +1,7 @@
-import chunkedSplice from 'micromark/dist/util/chunked-splice.js'
-import classifyCharacter from 'micromark/dist/util/classify-character.js'
-import shallow from 'micromark/dist/util/shallow.js'
+import { splice } from 'micromark-util-chunked'
+import { classifyCharacter } from 'micromark-util-classify-character'
+
+const shallow = a => Object.assign({}, a)
 
 export default function micromarkKbd (options = {}) {
   // By default, use the Unicode character U+124 (`|`)
@@ -70,16 +71,16 @@ function resolveAllKbd (events, context) {
           end: shallow(current[1].start)
         }
 
-        chunkedSplice(events, p + 2, 0, [['enter', data, context]])
-        chunkedSplice(events, p + 3, 0, [['exit', data, context]])
+        splice(events, p + 2, 0, [['enter', data, context]])
+        splice(events, p + 3, 0, [['exit', data, context]])
 
         i += 2
       }
 
-      chunkedSplice(events, p, 0, [['enter', kbdCall, context]])
-      chunkedSplice(events, p + 3, 0, [['enter', kbdCallString, context]])
-      chunkedSplice(events, i + 2, 0, [['exit', kbdCallString, context]])
-      chunkedSplice(events, i + 5, 0, [['exit', kbdCall, context]])
+      splice(events, p, 0, [['enter', kbdCall, context]])
+      splice(events, p + 3, 0, [['enter', kbdCallString, context]])
+      splice(events, i + 2, 0, [['exit', kbdCallString, context]])
+      splice(events, i + 5, 0, [['exit', kbdCall, context]])
 
       // Eat both start & end
       eatenEvents.push(p + 1, i + 3)
@@ -109,7 +110,7 @@ function tokenizeFactory (charCode) {
 
     return start
 
-    // Defines a state `kbdStart` that consumes the first pipe character
+    // Define a state `kbdStart` that consumes the first pipe character
     function start (code) {
       // Discard all characters except for the required one
       if (code !== charCode) return nok(code)
@@ -120,7 +121,7 @@ function tokenizeFactory (charCode) {
       return sequence
     }
 
-    // Defines a state `kbdSequence` that consumes all other pipe characters
+    // Define a state `kbdSequence` that consumes all other pipe characters
     function sequence (code) {
       if (code !== charCode) return nok(code)
       effects.consume(code)
@@ -128,7 +129,7 @@ function tokenizeFactory (charCode) {
       return consumeExtra
     }
 
-    // Defines a state `kbdConsumeExtra` that allow an additionnal pipe
+    // Define a state `kbdConsumeExtra` that allow an additionnal pipe
     // and match opening/closing sequences
     function consumeExtra (code) {
       const extraIsPipe = (code === charCode)

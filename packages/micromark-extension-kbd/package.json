@@ -11,10 +11,10 @@
     "extension"
   ],
   "author": "Titouan (Stalone) S. <talone@boxph.one>",
-  "homepage": "https://github.com/zestedesavoir/zmarkdown/tree/master#readme",
+  "homepage": "https://github.com/zestedesavoir/zmarkdown/tree/master/packages/micromark-extension-kbd",
   "license": "MIT",
-  "main": "./lib/index.js",
-  "module": "./lib/index.js",
+  "main": "lib/index.js",
+  "module": "lib/index.js",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -34,7 +34,8 @@
   "bugs": {
     "url": "https://github.com/zestedesavoir/zmarkdown/issues"
   },
-  "devDependencies": {
-    "micromark": "^2.11.4"
+  "dependencies": {
+    "micromark-util-chunked": "^1.0.0",
+    "micromark-util-classify-character": "^1.0.0"
   }
 }
