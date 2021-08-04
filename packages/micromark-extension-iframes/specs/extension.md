@@ -6,6 +6,8 @@ This document is part of the Zeste de Savoir Flavored Markdown specification, in
 
 [gfm]: https://github.github.com/gfm/
 
+**Important note**: this document aims to provide examples for a very simple parser, that would simply create an `iframe` sourcing the given link. In practice, you may want to implement a block list, or specific embed URLs. Theses operations are high-level, and henc eoutside the scope of this document.
+
 ## 1. Definitions
 
 For the scope of this document, an exclamation mark character is defined as the character `!` (U+0021), in it's unescaped version, that is, not precedeed by a backslash character `\` (U+005C).
@@ -24,7 +26,7 @@ For reference, this is an example of a simple iframe element, without too much o
 
 Example 1.1:
 
-!(https://www.youtube.com/watch?v=eLdiWe_HJv4) -> <iframe src="https://www.youtube.com/embed/eLdiWe_HJv4" frameborder="0" allowfullscreen></iframe>
+!(https://www.youtube.com/watch?v=eLdiWe_HJv4) -> <iframe src="https://www.youtube.com/watch?v=eLdiWe_HJv4"></iframe>
 
 The following example shows an invalid iframe element:
 
@@ -70,7 +72,7 @@ A single URL, not enclosed between the opening and closing sequences, should not
 
 Example 3.2:
 
-http://jsfiddle.net/zgjhjv9j/ -> <p><a href="http://jsfiddle.net/zgjhjv9j/">http://jsfiddle.net/zgjhjv9j/</a></p>
+http://jsfiddle.net/zgjhjv9j/ -> <p>https://jsfiddle.net/zgjhjv9j/</p>
 
 The enclosed URL may not include closing parenthesis, even if backslash-escaped. In this case, the parser should end on the first encountered parenthesis:
 
@@ -80,7 +82,7 @@ Example 3.3:
 
 Example 3.4:
 
-!(https://www.youtube.com/watch?v=eLd\\)We_HJv4) -> <p>!(https://www.youtube.com/watch?v=eLd\\)We_HJv4)</p>
+!(https://www.youtube.com/watch?v=eLd\\)We_HJv4) -> <p>!(https://www.youtube.com/watch?v=eLd)We_HJv4)</p>
 
 However, the URL can contain percent-encoded closing parenthesis, as mentionned by the [specification][whatwg-url].
 

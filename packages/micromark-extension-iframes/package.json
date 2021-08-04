@@ -34,6 +34,8 @@
     "url": "https://github.com/zestedesavoir/zmarkdown/issues"
   },
   "dependencies": {
-    "micromark-util-sanitize-uri": "^1.0.0"
+    "micromark-util-character": "^1.0.0",
+    "micromark-util-sanitize-uri": "^1.0.0",
+    "micromark-util-symbol": "^1.0.0"
   }
 }

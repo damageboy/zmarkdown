@@ -1,3 +1,6 @@
+import { markdownLineEnding } from 'micromark-util-character'
+import { codes } from 'micromark-util-symbol/codes.js'
+
 export default function micromarkIframes (options = {}) {
   // Character definitions, see specification, part 1
   const exclamationChar = options.exclamationChar || 33
@@ -58,6 +61,11 @@ function tokenizeFactory (charCodes) {
     function link (code) {
       if (code === closingChar) return closingParens
 
+      // Forbid EOL and EOF
+      if (code === codes.eof || markdownLineEnding(code)) {
+        return nok(code)
+      }
+
       effects.consume(code)
 
       return link
@@ -74,7 +82,11 @@ function tokenizeFactory (charCodes) {
       const endToken = effects.exit('iframeLinkDelimiter')
       endToken._type = 'end'
 
-      return ok
+      return finalBreak
+    }
+
+    function finalBreak (code) {
+      return (code === codes.eof || markdownLineEnding(code)) ? ok(code) : nok(code)
     }
   }
 }
