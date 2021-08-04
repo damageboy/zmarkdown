@@ -23,17 +23,17 @@
   "module": "lib/index.js",
   "files": [
     "LICENSE-MIT",
-    "dist",
-    "src",
+    "lib",
     "README.md"
   ],
   "keywords": [
-    "remark"
+    "remark",
+    "keyboard"
   ],
   "license": "MIT",
   "dependencies": {
     "micromark-extension-kbd": "file:../micromark-extension-kbd",
-    "is-whitespace-character": "^2.0.0"
+    "mdast-util-to-markdown": "^1.1.0"
   },
   "devDependencies": {
     "remark-parse": "^9.0.0",

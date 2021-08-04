@@ -1,5 +1,5 @@
 import syntax from 'micromark-extension-kbd'
-import phrasing from 'mdast-util-to-markdown/lib/util/container-phrasing.js'
+import { containerPhrasing } from 'mdast-util-to-markdown/lib/util/container-phrasing.js'
 
 function fromMarkdown () {
   function enterKbdData (token) {
@@ -33,7 +33,7 @@ function toMarkdown (char) {
 
   function handleKbd (node, _, context) {
     const exit = context.enter('kbd')
-    const value = phrasing(node, context, { before: char, after: char })
+    const value = containerPhrasing(node, context, { before: char, after: char })
     exit()
     return char + char + value + char + char
   }
@@ -43,13 +43,14 @@ function toMarkdown (char) {
   }
 
   return {
-    unsafe: [{ character: char, inConstruct: 'phrasing' }],
+    unsafe: [{ character: char, inConstruct: 'containerPhrasing' }],
     handlers: { kbd: handleKbd }
   }
 }
 
 export default function kbdPlugin (options = {}) {
-  const char = (options.char || '|').charAt(0)
+  // Default char when not provided
+  const char = options.char || '|'
   const charCode = char.charCodeAt(0)
   const data = this.data()
 
@@ -58,6 +59,7 @@ export default function kbdPlugin (options = {}) {
     else data[field] = [value]
   }
 
+  // Inject handlers
   add('micromarkExtensions', syntax({ charCode }))
   add('fromMarkdownExtensions', fromMarkdown())
   add('toMarkdownExtensions', toMarkdown(char))
