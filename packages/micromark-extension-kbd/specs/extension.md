@@ -24,6 +24,14 @@ Example 1.2:
 
 ||Ctrl| -> <p>||Ctrl|</p>
 
+Also note that due to keyboard entries being inline elements, they cannot contain any block, such as line breaks:
+
+Example 1.3:
+
+||Key
+board|| -> <p>||Key
+board||</p>
+
 ## 2. Pipe sequences
 
 A keyboard entry can itself contain a pipe character.
@@ -64,9 +72,15 @@ Example 2.6:
 
 |||| -> <p>||||</p>
 
-An backslash-escaped pipe cannot be used to make a keyboard entry:
+A blank space is not considered to be content:
 
 Example 2.7:
+
+|| || -> <p>|| ||</p>
+
+An backslash-escaped pipe cannot be used to make a keyboard entry:
+
+Example 2.8:
 
 \||a|| -> <p>||a||</p>
 

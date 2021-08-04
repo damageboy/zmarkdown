@@ -27,7 +27,7 @@ const fixture = dedent`
 
   With two pipes: \||key|| you'll get ||key||.
 
-  It can contain inline markdown:
+  It cannot contain inline markdown:
 
   * ||hell[~~o~~](#he)?||
 

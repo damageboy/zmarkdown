@@ -5,6 +5,7 @@ import micromarkKbdHtml from '../lib/html'
 const specificationTests = {
   'works': ['||Ctrl||', '<p><kbd>Ctrl</kbd></p>'],
   'missing one': ['||Ctrl|', '<p>||Ctrl|</p>'],
+  'may not contain line break': ['||Key\nboard||', '<p>||Key\nboard||</p>'],
   'can contain pipe': ['|||||', '<p><kbd>|</kbd></p>'],
   'no more than one pipe': ['||a||b||', '<p><kbd>a</kbd>b||</p>'],
   'no spaces opening': ['| |a||', '<p>| |a||</p>'],
@@ -12,10 +13,10 @@ const specificationTests = {
   'cannot start with space': ['|| a||', '<p>|| a||</p>'],
   'cannot end with space': ['||a ||', '<p>||a ||</p>'],
   'needs content': ['||||', '<p>||||</p>'],
+  'space isn\'t content': ['|| ||', '<p>|| ||</p>'],
   'escaped': ['\\||a||', '<p>||a||</p>'],
-  // TODO: fix the parser for these two
-  'has precedence': ['*foo||*||', '<p>*foo<kbd>*</kbd></p>', true],
-  'cannot contain inline': ['||*foo*||', '<p><kbd>*foo*</kbd></p>', true]
+  'has precedence': ['*foo||*||', '<p>*foo<kbd>*</kbd></p>'],
+  'cannot contain inline': ['||*foo*||', '<p><kbd>*foo*</kbd></p>']
 }
 
 const renderString = (fixture) =>

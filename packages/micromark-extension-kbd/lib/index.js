@@ -1,7 +1,8 @@
+import { markdownLineEnding } from 'micromark-util-character'
 import { splice } from 'micromark-util-chunked'
-import { classifyCharacter } from 'micromark-util-classify-character'
+import { codes } from 'micromark-util-symbol/codes.js'
 
-const shallow = a => Object.assign({}, a)
+const shallow = o => Object.assign({}, o)
 
 export default function micromarkKbd (options = {}) {
   // By default, use the Unicode character U+124 (`|`)
@@ -20,83 +21,47 @@ export default function micromarkKbd (options = {}) {
 }
 
 function resolveAllKbd (events, context) {
-  const eatenEvents = [-1]
-
-  // That's the resolve function, where we remove artifacts
-  // In our case, there can be glitchy pipes in the breeze
   for (let i = 0; i < events.length; i++) {
-    const current = events[i]
+    const kbdCall = events[i]
 
-    // We are looking for:
-    //   - an enter event;
-    //   - inside a `kbdCallDelimiter`;
-    //   - that represents a closing delimiter.
-    if (current[0] !== 'enter' ||
-        current[1].type !== 'kbdCallDelimiter' ||
-        !current[1]._end) continue
+    // Find a `kbdCallString` end
+    if (kbdCall[1].type !== 'kbdCallString' || kbdCall[0] !== 'exit') continue
 
-    // Go back to find the corresponding opening event
-    for (let p = i - 1; p > eatenEvents[eatenEvents.length - 1]; p--) {
-      const potentialStart = events[p]
+    const potentialAdjacent = events[i + 1]
 
-      if (potentialStart[0] !== 'enter' ||
-          potentialStart[1].type !== 'kbdCallDelimiter' ||
-          !potentialStart[1]._start) continue
+    // Merge together adjacents `kbdCallString`
+    if (potentialAdjacent[1].type === 'kbdCallString' && potentialAdjacent[0] === 'enter') {
+      events[i - 1][1].end = shallow(events[i + 2][1].end)
+      events[i + 2][1].start = shallow(events[i - 1][1].start)
 
-      const kbdCall = {
-        type: 'kbdCall',
-        start: shallow(potentialStart[1].start),
-        end: shallow(events[i + 1][1].end)
-      }
+      events.splice(i, 2)
+      i--
 
-      const kbdCallString = {
-        type: 'kbdCallString',
-        start: shallow(events[p + 1][1].end),
-        end: shallow(current[1].start)
-      }
-
-      // Take care of the special case `|||||` (five consecutive pipes)
-      if (p + 2 === i) {
-        if (!potentialStart[1]._extraIsPipe) continue
-
-        // Remove a character from start
-        events[p][1].end._bufferIndex--
-        events[p][1].end.column--
-        events[p][1].end.offset--
-
-        // Insert data pipe in events
-        const data = {
-          type: 'data',
-          start: shallow(potentialStart[1].end),
-          end: shallow(current[1].start)
-        }
-
-        splice(events, p + 2, 0, [['enter', data, context]])
-        splice(events, p + 3, 0, [['exit', data, context]])
-
-        i += 2
-      }
-
-      splice(events, p, 0, [['enter', kbdCall, context]])
-      splice(events, p + 3, 0, [['enter', kbdCallString, context]])
-      splice(events, i + 2, 0, [['exit', kbdCallString, context]])
-      splice(events, i + 5, 0, [['exit', kbdCall, context]])
-
-      // Eat both start & end
-      eatenEvents.push(p + 1, i + 3)
-      break
+      continue
     }
-  }
 
-  // Mutate events according to what has been found above
-  for (let i = 0; i < events.length; i++) {
-    // Match only events of interest
-    if (events[i][0] !== 'enter') continue
-    if (events[i][1].type !== 'kbdCallDelimiter') continue
+    // Take care of the special case `|||||` (five consecutive pipes)
+    if (events[i + 1][1]._hasExtra) {
+      events[i + 1][1].end._bufferIndex--
+      events[i + 1][1].end.column--
+      events[i + 1][1].end.offset--
 
-    if (!eatenEvents.includes(i)) {
-      events[i][1].type = 'data'
+      events[i][1].end._bufferIndex++
+      events[i][1].end.column++
+      events[i][1].end.offset++
     }
+
+    // Once everything has been merged, insert `data`
+    const data = {
+      type: 'data',
+      start: shallow(kbdCall[1].start),
+      end: shallow(kbdCall[1].end)
+    }
+
+    splice(events, i, 0, [['enter', data, context]])
+    splice(events, i + 1, 0, [['exit', data, context]])
+
+    i += 2
   }
 
   return events
@@ -106,42 +71,100 @@ function tokenizeFactory (charCode) {
   return tokenizeKbd
 
   function tokenizeKbd (effects, ok, nok) {
-    const previous = this.previous
+    let token
+    let previous
 
     return start
 
-    // Define a state `kbdStart` that consumes the first pipe character
+    // Define a state `start` that consumes the first pipe character
     function start (code) {
       // Discard all characters except for the required one
       if (code !== charCode) return nok(code)
 
+      effects.enter('kbdCall')
       effects.enter('kbdCallDelimiter')
       effects.consume(code)
 
-      return sequence
+      return startSequence
     }
 
-    // Define a state `kbdSequence` that consumes all other pipe characters
-    function sequence (code) {
+    // Define a state `startSequence` that consumes another pipe character
+    function startSequence (code) {
       if (code !== charCode) return nok(code)
+
+      effects.consume(code)
+      effects.exit('kbdCallDelimiter')
+
+      return startContent
+    }
+
+    // Define a state `startContent` to prevent keyboard entries from starting with a space
+    function startContent (code) {
+      // Space before? Invalid sequence
+      if (code === codes.space) return nok(code)
+
+      // Forbid EOL and EOF
+      if (code === codes.eof || markdownLineEnding(code)) {
+        return nok(code)
+      }
+
+      effects.enter('kbdCallString')
       effects.consume(code)
 
-      return consumeExtra
+      return content
     }
 
-    // Define a state `kbdConsumeExtra` that allow an additionnal pipe
-    // and match opening/closing sequences
-    function consumeExtra (code) {
-      const extraIsPipe = (code === charCode)
+    // Define a state `content` to parse the inside
+    function content (code) {
+      // Allow one more pipe inside, but no more
+      if (code === charCode) {
+        effects.exit('kbdCallString')
+        token = effects.enter('kbdCallDelimiter')
+        effects.consume(code)
 
-      if (extraIsPipe) effects.consume(code)
+        return potentialEnd
+      }
 
-      const endToken = effects.exit('kbdCallDelimiter')
-      endToken._start = extraIsPipe || !classifyCharacter(code)
-      endToken._end = !classifyCharacter(previous) || (previous === charCode)
-      endToken._extraIsPipe = extraIsPipe
+      // Forbid EOL and EOF
+      if (code === codes.eof || markdownLineEnding(code)) {
+        return nok(code)
+      }
 
-      return extraIsPipe ? ok : ok(code)
+      effects.consume(code)
+      previous = code
+
+      return content
+    }
+
+    // Define a state `potentialEnd` to match the last pipe
+    function potentialEnd (code) {
+      // Not a pipe? Switch back to content
+      if (code !== charCode) {
+        token.type = 'kbdCallString'
+        return content(code)
+      }
+
+      // Space after? Invalid sequence
+      if (previous === codes.space) return nok(code)
+
+      effects.consume(code)
+
+      return extraPipe
+    }
+
+    // Define a state `extraPipe` to allow an additionnal pipe (for `|||||`)
+    function extraPipe (code) {
+      const eaten = (code === charCode)
+
+      if (eaten) {
+        effects.consume(code)
+        token._hasExtra = true
+      }
+
+      effects.exit('kbdCallDelimiter')
+      effects.exit('kbdCall')
+
+      return eaten ? ok : ok(code)
     }
   }
 }

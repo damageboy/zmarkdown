@@ -11,3 +11,13 @@ test('can take a custom character', () => {
 
   expect(output).toEqual('<p><kbd>Ctrl</kbd></p>')
 })
+
+test('delete orphans', () => {
+  const input = '||a|| bc ||d'
+  const output = micromark(input, {
+    extensions: [micromarkKbd()],
+    htmlExtensions: [micromarkKbdHtml]
+  })
+
+  expect(output).toEqual('<p><kbd>a</kbd> bc ||d</p>')
+})

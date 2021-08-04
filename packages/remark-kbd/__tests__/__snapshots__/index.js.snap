@@ -28,12 +28,12 @@ sfdgs \\\\| \\\\| dfg \\\\|\\\\| dgsg \\\\| qs
 
 With two pipes: \\\\|\\\\|key\\\\|\\\\| you'll get ||key||.
 
-It can contain inline markdown:
+It cannot contain inline markdown:
 
-*   \\\\|\\\\|hell[~~o~~](#he)?\\\\|\\\\|
+*   ||hell\\\\[~~o~~]\\\\(#he)?||
 
 It cannot contain blocks:
 
-*   \\\\|\\\\|hello: \\\\[\\\\[secret]]?\\\\|\\\\|
+*   ||hello: \\\\[\\\\[secret]]?||
 "
 `;
