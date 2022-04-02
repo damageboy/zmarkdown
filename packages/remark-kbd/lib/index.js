@@ -43,7 +43,7 @@ function toMarkdown (char) {
   }
 
   return {
-    unsafe: [{ character: char, inConstruct: 'containerPhrasing' }],
+    unsafe: [{ character: char, inConstruct: 'phrasing' }],
     handlers: { kbd: handleKbd }
   }
 }

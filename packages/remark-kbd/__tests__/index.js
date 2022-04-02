@@ -5,7 +5,7 @@ import kbdPlugin from '../lib/index'
 import remarkStringify from 'remark-stringify'
 import rehypeStringify from 'rehype-stringify'
 import remark2rehype from 'remark-rehype'
-// TODO (next): reintroduce this test once the plugin is ready
+// TODO (next): reintroduce once the plugin is ready
 import remarkCustomBlocks from '../../remark-custom-blocks'
 
 const render = text => unified()
@@ -37,48 +37,37 @@ const fixture = dedent`
 `
 
 describe('parses kbd', () => {
-  it.skip('parses a big fixture', () => {
-    const {contents} = render(fixture)
-    expect(contents).toMatchSnapshot()
+  it('parses a big fixture', () => {
+    const {value} = render(fixture)
+    expect(value).toMatchSnapshot()
   })
 
   it('escapes the start marker', () => {
-    const {contents} = render(dedent`
+    const {value} = render(dedent`
       ||one|| \||escaped|| ||three|| \|||four|| ||five||
     `)
-    expect(contents).toContain('||escaped||')
-    expect(contents).toContain('|<kbd>four</kbd>')
+    expect(value).toContain('||escaped||')
+    expect(value).toContain('|<kbd>four</kbd>')
   })
 })
 
 test('allow non-pipe characters', () => {
-  const {contents} = unified()
+  const {value} = unified()
     .use(reParse)
     .use(kbdPlugin, {char: '+'})
     .use(remark2rehype)
     .use(rehypeStringify)
     .processSync('++CTRL++, \\+++D++')
 
-  expect(contents).toMatchSnapshot()
-})
-
-test.skip('allow different left-right characters', () => {
-  const {contents} = unified()
-    .use(reParse)
-    .use(kbdPlugin, {charLeft: '[', charRight: ']'})
-    .use(remark2rehype)
-    .use(rehypeStringify)
-    .processSync('[[CTRL]]+[[ALT]]+[[SUPPR]]')
-
-  expect(contents).toMatchSnapshot()
+  expect(value).toMatchSnapshot()
 })
 
 test('to markdown', () => {
-  const {contents} = unified()
+  const {value} = unified()
     .use(reParse)
     .use(remarkStringify)
     .use(kbdPlugin)
     .processSync(fixture)
 
-  expect(contents).toMatchSnapshot()
+  expect(value).toMatchSnapshot()
 })
