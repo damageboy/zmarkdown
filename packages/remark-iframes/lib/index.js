@@ -1,5 +1,8 @@
 import syntax from 'micromark-extension-iframes'
 import { safe } from 'mdast-util-to-markdown/lib/util/safe.js'
+import { visit } from 'unist-util-visit'
+
+import embedRequest from './request.js'
 
 const DEFAULT_CHARS = {
   exclamationMark: '!',
@@ -7,7 +10,7 @@ const DEFAULT_CHARS = {
   closingChar: ')'
 }
 
-function fromMarkdown (handlers) {
+function fromMarkdown () {
   function enterIframeLink (token) {
     this.enter({
       type: 'iframe',
@@ -29,8 +32,8 @@ function fromMarkdown (handlers) {
     const src = this.resume()
 
     // This src is used for compiling to Markdown
+    // and to resolve embed links.
     context.src = src
-    context.data.hProperties = { src }
 
     this.exit(token)
   }
@@ -80,7 +83,7 @@ export default function iframePlugin (options = {}) {
   const data = this.data()
   const chars = options.chars || {}
   const charCodes = {}
-  const handlers = options.handlers || {}
+  const providers = options.providers || {}
 
   // Default chars when not provided
   for (const [key, defaultChar] of Object.entries(DEFAULT_CHARS)) {
@@ -97,7 +100,33 @@ export default function iframePlugin (options = {}) {
   }
 
   // Inject handlers
-  add('micromarkExtensions', syntax())
-  add('fromMarkdownExtensions', fromMarkdown(handlers))
+  add('micromarkExtensions', syntax(charCodes))
+  add('fromMarkdownExtensions', fromMarkdown())
   add('toMarkdownExtensions', toMarkdown(chars))
+
+  // Visit all iframes to make embed requests
+  return async tree => {
+    // Visit doesn't support async visitors but supports async transformers
+    const iframeNodes = []
+
+    visit(tree, node => {
+      if (node.type !== 'iframe') return
+
+      iframeNodes.push(node)
+    })
+
+    await Promise.all(iframeNodes.map(async node => {
+      const embedResult = await embedRequest(node.src, providers)
+
+      node.data.hProperties = {
+        src: embedResult.url,
+        width: embedResult.width,
+        height: embedResult.height,
+        allowfullscreen: true,
+        frameborder: '0'
+      }
+    }))
+
+    return tree
+  }
 }
