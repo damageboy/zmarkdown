@@ -1,5 +1,5 @@
 import dedent from 'dedent'
-import unified from 'unified'
+import {unified} from 'unified'
 import reParse from 'remark-parse'
 import kbdPlugin from '../lib/index'
 import remarkStringify from 'remark-stringify'
