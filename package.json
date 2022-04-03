@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest packages/remark-kbd packages/micromark-extension-kbd packages/micromark-extension-iframes",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest packages/remark-kbd packages/remark-iframes packages/micromark-extension-kbd packages/micromark-extension-iframes",
     "lint": "eslint .",
     "build": "lerna run build",
     "build-demo": "lerna run release --scope zmarkdown && del-cli ./packages/zmarkdown/public/js && cp -r ./packages/zmarkdown/client/dist ./packages/zmarkdown/public/js"

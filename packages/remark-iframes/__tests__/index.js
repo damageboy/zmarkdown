@@ -1,25 +1,25 @@
 import dedent from 'dedent'
-import unified from 'unified'
+import {unified} from 'unified'
 import reParse from 'remark-parse'
-import stringify from 'rehype-stringify'
+import remarkGfm from 'remark-gfm'
+import iframesPlugin from '../lib/index'
 import remark2rehype from 'remark-rehype'
 import remarkStringify from 'remark-stringify'
-
-import plugin from '../src/'
-
+import rehypeStringify from 'rehype-stringify'
 
 const render = async (text, config) => unified()
   .use(reParse)
-  .use(plugin, config)
+  .use(remarkGfm)
+  .use(iframesPlugin, config)
   .use(remark2rehype)
-  .use(stringify)
+  .use(rehypeStringify)
   .process(text)
 
-const renderMarkdown = (text, config) => unified()
+const renderMarkdown = async (text, config) => unified()
   .use(reParse)
   .use(remarkStringify)
-  .use(plugin, config)
-  .processSync(text)
+  .use(iframesPlugin, config)
+  .process(text)
 
 const config = {
   video: {
@@ -169,7 +169,7 @@ const config = {
 }
 
 test('video', async () => {
-  const {contents} = await render(dedent`
+  const {value} = await render(dedent`
     !(https://www.youtube.com/watch?v=FdltlrKFr1w)
 
     !(https://www.dailymotion.com/video/x2y6lhm)
@@ -200,13 +200,13 @@ test('video', async () => {
 
     !(https://www.youtube.com/watch?v=FdltlrKFr1w)
     with text after
-  `, config.video)
+  `, {providers: config.video})
 
-  expect(contents).toMatchSnapshot()
+  expect(value).toMatchSnapshot()
 })
 
 test('oembed falls back', async () => {
-  const config = {
+  const providers = {
     'www.youtube.com': {
       width: 560,
       height: 315,
@@ -216,21 +216,21 @@ test('oembed falls back', async () => {
   }
   const result = await render(dedent`
     !(https://www.youtube.com/watch?v=FdltlrKFr1w)
-  `, config)
+  `, {providers})
 
   expect(result.messages[0].message).toContain('timeout')
-  expect(result.contents).toMatchSnapshot()
+  expect(result.value).toMatchSnapshot()
 })
 
 test('extra', async () => {
-  const {contents: parsed} = await render(dedent`
+  const {value: parsed} = await render(dedent`
     !(https://www.youtube.com/watch?v=FdltlrKFr1w)
 
     !(https://www.youtube.com/watch?feature=embedded&v=FdltlrKFr1w)
-  `, config.extra)
+  `, {providers: config.extra})
   expect(parsed).toMatch(/iframe.*iframe/)
 
-  const {contents: notParsed} = await render(dedent`
+  const {value: notParsed} = await render(dedent`
     !(http://jsfiddle.net/Sandhose/BcKhe/1/)
 
     !(http://jsfiddle.net/zgjhjv9j/)
@@ -238,12 +238,12 @@ test('extra', async () => {
     !(http://jsfiddle.net/zgjhjv9j/1/)
 
     !(http://jsfiddle.net/Sandhose/BcKhe/)
-  `, config.extra)
+  `, {providers: config.extra})
   expect(notParsed).not.toMatch('iframe')
 })
 
 test('does not parse without markers', async () => {
-  const config = {
+  const providers = {
     'www.youtube.com': {
       tag: 'iframe',
       width: 560,
@@ -258,13 +258,13 @@ test('does not parse without markers', async () => {
     },
   }
 
-  const {contents} = await render(dedent`
+  const {value} = await render(dedent`
     !(https://www.youtube.com/watch?v=FdltlrKFr1w)
 
     https://www.youtube.com/watch?v=FdltlrKFr1w
-  `, config)
+  `, {providers})
 
-  expect(contents).toMatchSnapshot()
+  expect(value).toMatchSnapshot()
 })
 
 test('Errors without config', async () => {
@@ -280,8 +280,7 @@ test('Errors with invalid config', async () => {
   expect(render('', '')).rejects.toThrowError(Error)
 })
 
-
-test('Compiles to Markdown', () => {
+test('Compiles to Markdown', async () => {
   const txt = dedent`
     A [link with **bold**](http://example.com)
 
@@ -299,16 +298,10 @@ test('Compiles to Markdown', () => {
 
     Foo !(this is a parenthesis) bar
   `
-  const {contents} = renderMarkdown(txt, config.toMd)
-  expect(contents).toMatchSnapshot()
-
-  const recompiled = renderMarkdown(contents.replace(/&#x3A;/g, ':'), config.toMd).contents
-  expect(recompiled).toBe(contents)
+  const {value} = await renderMarkdown(txt, {providers: config.toMd})
+  expect(value).toMatchSnapshot()
 
   config.toMd['jsfiddle.net'].disabled = false
-  const withJsFiddleActivated = renderMarkdown(txt, config.toMd).contents
-  expect(withJsFiddleActivated).toMatchSnapshot()
-
-  const recompiledWithJsFiddleActivated = renderMarkdown(withJsFiddleActivated.replace(/&#x3A;/g, ':'), config.toMd).contents
-  expect(recompiledWithJsFiddleActivated).toBe(withJsFiddleActivated)
+  const withJsFiddleActivated = await renderMarkdown(txt, {providers: config.toMd})
+  expect(withJsFiddleActivated.value).toMatchSnapshot()
 })

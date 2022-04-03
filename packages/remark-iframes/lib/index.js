@@ -66,15 +66,7 @@ function toMarkdown (chars) {
     return chars.exclamationMark
   }
 
-  // Open parenthesis must be escaped
-  const after = chars.openingChar === DEFAULT_CHARS.openingChar ? '\\(' : chars.openingChar
-
   return {
-    unsafe: [
-      { character: chars.exclamationMark, inConstruct: 'phrasing', after },
-      { character: chars.openingChar, inConstruct: 'phrasing', before: chars.exclamationMark },
-      { character: chars.closingChar, inConstruct: 'phrasing' }
-    ],
     handlers: { iframe: handleIframe }
   }
 }
@@ -83,7 +75,11 @@ export default function iframePlugin (options = {}) {
   const data = this.data()
   const chars = options.chars || {}
   const charCodes = {}
-  const providers = options.providers || {}
+  const providers = options.providers
+
+  if (typeof providers !== 'object' || !Object.keys(providers).length) {
+    throw new Error('remark-iframes needs to be passed a provider object as option')
+  }
 
   // Default chars when not provided
   for (const [key, defaultChar] of Object.entries(DEFAULT_CHARS)) {
@@ -105,7 +101,7 @@ export default function iframePlugin (options = {}) {
   add('toMarkdownExtensions', toMarkdown(chars))
 
   // Visit all iframes to make embed requests
-  return async tree => {
+  return async (tree, vfile) => {
     // Visit doesn't support async visitors but supports async transformers
     const iframeNodes = []
 
@@ -116,15 +112,40 @@ export default function iframePlugin (options = {}) {
     })
 
     await Promise.all(iframeNodes.map(async node => {
-      const embedResult = await embedRequest(node.src, providers)
+      function nodeFallback (e) {
+        // If URL didn't match, fall back to paragraph
+        node.type = 'paragraph'
+        node.children = [{ type: 'text', value: `!(${node.src})` }]
+        node.data = {}
 
-      node.data.hProperties = {
-        src: embedResult.url,
-        width: embedResult.width,
-        height: embedResult.height,
-        allowfullscreen: true,
-        frameborder: '0'
+        // Add error to the vfile
+        let { message } = e
+
+        if (e.name === 'AbortError') {
+          message = `oEmbed URL timeout: ${node.src}`
+        }
+
+        vfile.message(message, node.position, node.src)
       }
+
+      const nodeRequest = embedRequest(node.src, providers)
+
+      if (!nodeRequest) {
+        nodeFallback(new Error('Provider for the given URL hasn\'t been authorized'))
+        return
+      }
+
+      return nodeRequest.then(embedResult => {
+        node.thumbnail = embedResult.thumbnail
+
+        Object.assign(node.data.hProperties, {
+          src: embedResult.url,
+          width: embedResult.width,
+          height: embedResult.height,
+          allowfullscreen: true,
+          frameborder: '0'
+        })
+      }).catch(nodeFallback)
     }))
 
     return tree

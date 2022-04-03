@@ -2,9 +2,9 @@ import dedent from 'dedent'
 import {unified} from 'unified'
 import reParse from 'remark-parse'
 import kbdPlugin from '../lib/index'
+import remark2rehype from 'remark-rehype'
 import remarkStringify from 'remark-stringify'
 import rehypeStringify from 'rehype-stringify'
-import remark2rehype from 'remark-rehype'
 // TODO (next): reintroduce once the plugin is ready
 import remarkCustomBlocks from '../../remark-custom-blocks'
 

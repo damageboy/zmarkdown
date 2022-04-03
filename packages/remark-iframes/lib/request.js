@@ -1,6 +1,9 @@
 import fetch from 'node-fetch'
 import { sanitizeUri } from 'micromark-util-sanitize-uri'
 
+// AbortController is available in Node 14.x while fetch is only implemented in Node 17.x
+const AbortController = globalThis.AbortController
+
 const protocolIframe = /^https?$/i
 
 export default function embedRequest (iframeUrl, providers) {
@@ -22,7 +25,11 @@ export default function embedRequest (iframeUrl, providers) {
     reqUrl.searchParams.append('format', 'json')
     reqUrl.searchParams.append('url', checkedUrl.url)
 
-    return fetch(reqUrl.toString(), { timeout: 1500 })
+    // Abort after timeout
+    const aController = new AbortController()
+    const aTimeout = setTimeout(() => { aController.abort() }, 1500)
+
+    return fetch(reqUrl.toString(), { signal: aController.signal })
       .then(res => res.json())
       .then(oembedRes => {
         const oembedUrl = oembedRes.html.match(/src="(.+?)"/)[1]
@@ -35,10 +42,15 @@ export default function embedRequest (iframeUrl, providers) {
           height: provider.height || oembedRes.height
         }
       })
+      .finally(() => { clearTimeout(aTimeout) })
   }
 
   // If oembed wasn't provided
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
+    if (provider.match && provider.match instanceof RegExp && !provider.match.test(checkedUrl.url)) {
+      reject(Error('No match'))
+    }
+
     resolve({
       url: computeFinalUrl(provider, checkedUrl.url),
       thumbnail: computeThumbnail(provider, checkedUrl.url),
