@@ -4,124 +4,91 @@ import { sanitizeUri } from 'micromark-util-sanitize-uri'
 
 const protocolIframe = /^https?$/i
 
+function urlChecker (url) {
+  const sanitizedUrl = sanitizeUri(url, protocolIframe)
+
+  try {
+    const parsedUrl = new URL(sanitizedUrl)
+
+    return { url: sanitizedUrl, host: parsedUrl.hostname }
+  } catch (e) {}
+}
+
 export default function embedRequest (iframeUrl, providers) {
-  // Make a list of valid domains
-  const validDomains = Object.entries(providers)
-    .filter(d => d[1].disabled === false)
-    .map(d => d[0])
-
-  // Check if URL is valid and matches a domain
-  const checkedUrl = urlChecker(iframeUrl)
-  if (!checkedUrl) return
-
-  const provider = providers[checkedUrl.host]
-  if (!provider) return
-
-  // Two possible cases: oembed or not
-  if (provider.oembed) {
-    const reqUrl = new URL(provider.oembed)
-    reqUrl.searchParams.append('format', 'json')
-    reqUrl.searchParams.append('url', checkedUrl.url)
-
-    // Abort after timeout
-    const aController = new AbortController()
-    const aTimeout = setTimeout(() => { aController.abort() }, 1500)
-
-    return fetch(reqUrl.toString(), { signal: aController.signal })
-      .then(res => res.json())
-      .then(oembedRes => {
-        const oembedUrl = oembedRes.html.match(/src="(.+?)"/)[1]
-        const oembedThumbnail = oembedRes.thumbnail_url
-
-        return {
-          url: oembedUrl,
-          thumbnail: oembedThumbnail,
-          width: provider.width || oembedRes.width,
-          height: provider.height || oembedRes.height
-        }
-      })
-      .finally(() => { clearTimeout(aTimeout) })
-  }
-
-  // If oembed wasn't provided
   return new Promise((resolve, reject) => {
+    // Make a list of valid domains
+    const validDomains = providers
+      .filter(p => p.disabled === false)
+      .map(p => p.hostname)
+      .flat()
+
+    // Check if URL is valid
+    const checkedUrl = urlChecker(iframeUrl)
+    if (!checkedUrl) return reject(new Error('Embed URL is invalid'))
+
+    // Check if URL has a valid provider
+    if (!validDomains.includes(checkedUrl.host)) return reject(new Error('Embed host is not supported'))
+
+    const provider = providers
+      .find(p => p.hostname.includes(checkedUrl.host))
+    if (!provider) return reject(new Error('Embed host is not supported'))
+
     if (provider.match && provider.match instanceof RegExp && !provider.match.test(checkedUrl.url)) {
-      reject(Error('No match'))
+      return reject(Error('Embed URL did not match'))
     }
 
-    resolve({
-      url: computeFinalUrl(provider, checkedUrl.url),
-      thumbnail: computeThumbnail(provider, checkedUrl.url),
-      width: provider.width,
-      height: provider.height
+    if (provider.transformer && typeof provider.transformer === 'function') {
+      checkedUrl.url = provider.transformer(checkedUrl.url)
+    }
+
+    return resolve({
+      url: checkedUrl.url,
+      provider
     })
   })
+    .then(({ url, provider }) => {
+      // If oembed hasn't been provided, use the transformed link
+      if (!provider.oembed) {
+        let thumbnail
 
-  function urlChecker (url) {
-    const sanitizedUrl = sanitizeUri(url, protocolIframe)
+        if (provider.thumbnail) {
+          if (typeof provider.thumbnail === 'function') {
+            thumbnail = provider.thumbnail(url)
+          } else {
+            thumbnail = provider.thumbnail
+          }
+        }
 
-    try {
-      const parsedUrl = new URL(sanitizedUrl)
-
-      if (validDomains.includes(parsedUrl.hostname)) {
-        return { url: sanitizedUrl, host: parsedUrl.hostname }
+        return {
+          url,
+          thumbnail,
+          width: provider.width,
+          height: provider.height
+        }
       }
-    } catch (e) {}
-  }
-}
 
-function computeFinalUrl (provider, url) {
-  let finalUrl = url
-  let parsed = new URL(finalUrl)
+      // Make oEmbed request
+      const reqUrl = new URL(provider.oembed)
+      reqUrl.searchParams.append('format', 'json')
+      reqUrl.searchParams.append('url', url)
 
-  if (provider.droppedQueryParameters && parsed.search) {
-    const search = new URLSearchParams(parsed.search)
-    provider.droppedQueryParameters.forEach(ignored => search.delete(ignored))
-    parsed.search = search.toString()
-    finalUrl = parsed.toString()
-  }
+      // Abort after timeout
+      const aController = new AbortController()
+      const aTimeout = setTimeout(() => { aController.abort() }, 1500)
 
-  if (provider.replace && provider.replace.length) {
-    provider.replace.forEach((rule) => {
-      const [from, to] = rule
-      if (from && to) finalUrl = finalUrl.replace(from, to)
-      parsed = new URL(finalUrl)
+      return fetch(reqUrl.toString(), { signal: aController.signal })
+        .then(res => res.json())
+        .then(oembedRes => {
+          const oembedUrl = oembedRes.html.match(/src="(.+?)"/)[1]
+          const oembedThumbnail = oembedRes.thumbnail_url
+
+          return {
+            url: oembedUrl,
+            thumbnail: oembedThumbnail,
+            width: provider.width || oembedRes.width,
+            height: provider.height || oembedRes.height
+          }
+        })
+        .finally(() => { clearTimeout(aTimeout) })
     })
-    finalUrl = parsed.toString()
-  }
-
-  if (provider.removeFileName) {
-    parsed.pathname = parsed.pathname.substring(0, parsed.pathname.lastIndexOf('/'))
-    finalUrl = parsed.toString()
-  }
-
-  if (provider.removeAfter && finalUrl.includes(provider.removeAfter)) {
-    finalUrl = finalUrl.substring(0, finalUrl.indexOf(provider.removeAfter))
-  }
-
-  if (provider.append) {
-    finalUrl += provider.append
-  }
-
-  return finalUrl
-}
-
-function computeThumbnail (provider, url) {
-  let thumbnailURL = ''
-  const thumbnailConfig = provider.thumbnail
-
-  if (thumbnailConfig && thumbnailConfig.format) {
-    thumbnailURL = thumbnailConfig.format
-
-    Object
-      .keys(thumbnailConfig)
-      .filter((key) => key !== 'format')
-      .forEach((key) => {
-        const search = new RegExp(`{${key}}`, 'g')
-        const replace = new RegExp(thumbnailConfig[key]).exec(url)
-        if (replace) thumbnailURL = thumbnailURL.replace(search, replace[1])
-      })
-  }
-
-  return thumbnailURL
 }

@@ -111,8 +111,18 @@ export default function iframePlugin (options = {}) {
       iframeNodes.push(node)
     })
 
-    await Promise.all(iframeNodes.map(async node => {
-      function nodeFallback (e) {
+    await Promise.all(iframeNodes.map(async node =>
+      embedRequest(node.src, providers).then(embedResult => {
+        node.thumbnail = embedResult.thumbnail
+
+        Object.assign(node.data.hProperties, {
+          src: embedResult.url,
+          width: embedResult.width,
+          height: embedResult.height,
+          allowfullscreen: true,
+          frameborder: '0'
+        })
+      }).catch(e => {
         // If URL didn't match, fall back to paragraph
         node.type = 'paragraph'
         node.children = [{ type: 'text', value: `!(${node.src})` }]
@@ -126,27 +136,8 @@ export default function iframePlugin (options = {}) {
         }
 
         vfile.message(message, node.position, node.src)
-      }
-
-      const nodeRequest = embedRequest(node.src, providers)
-
-      if (!nodeRequest) {
-        nodeFallback(new Error('Provider for the given URL hasn\'t been authorized'))
-        return
-      }
-
-      return nodeRequest.then(embedResult => {
-        node.thumbnail = embedResult.thumbnail
-
-        Object.assign(node.data.hProperties, {
-          src: embedResult.url,
-          width: embedResult.width,
-          height: embedResult.height,
-          allowfullscreen: true,
-          frameborder: '0'
-        })
-      }).catch(nodeFallback)
-    }))
+      })
+    ))
 
     return tree
   }
