@@ -1,8 +1,7 @@
-# remark-iframes [![Build Status][build-badge]][build-status] [![Coverage Status][coverage-badge]][coverage-status]
+# remark-iframes
 
 This plugin parses custom Markdown syntax to create iframes.
-
-This creates a new MDAST element called "iframe"
+It adds a new node type to the [mdast][mdast] produced by [remark][remark]: `iframe`.
 
 If you are using [rehype][rehype], the stringified HTML result will be a tag you can configure. Most of time you want `iframe`.
 

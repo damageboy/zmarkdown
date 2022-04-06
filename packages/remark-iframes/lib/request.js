@@ -1,8 +1,6 @@
+import AbortController from 'abort-controller'
 import fetch from 'node-fetch'
 import { sanitizeUri } from 'micromark-util-sanitize-uri'
-
-// AbortController is available in Node 14.x while fetch is only implemented in Node 17.x
-const AbortController = globalThis.AbortController
 
 const protocolIframe = /^https?$/i
 
