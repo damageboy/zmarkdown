@@ -2,7 +2,7 @@
 
 **[micromark][]** extension that parses custom Markdown syntax to handle
 external content frames (i.e. iframes).
-This syntax extension follows a [formal specification][spec];
+This syntax extension follows a [specification][spec];
 in short, the syntax is the same as the one used for embedding images.
 For instance, use `!(https://www.youtube.com/embed/{yid})` to embed a Youtube video.
 

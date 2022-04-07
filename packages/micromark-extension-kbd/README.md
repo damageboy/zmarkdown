@@ -2,7 +2,7 @@
 
 **[micromark][]** extension that parses custom Markdown syntax to handle
 keyboard keys.
-This syntax extension follows a [formal specification][spec];
+This syntax extension follows a [specification][spec];
 to make it short, use two pipe cahracters (`||`) as opening and closing
 delimiters.
 
