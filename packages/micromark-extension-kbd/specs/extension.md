@@ -1,5 +1,7 @@
 ## Keyboard entries
 
+As a preliminary, keyboard entries extend inline GFM structures. As such, they are parsed sequentially from beginning to end of stream.
+
 ### 1. Definitions
 
 Is refered to as a pipe character the character `|` (U+007C), in it's unescaped version, that is, not precedeed by a backslash character `\` (U+005C).
@@ -60,7 +62,7 @@ Example 2.1:
 <p><kbd>|</kbd></p>
 ```
 
-But not more than one, otherwise it might get confused with the closing sequence.
+But not more than one, otherwise, inline parsing being from beginning to end, it might get confused with the closing sequence.
 
 Example 2.2:
 
@@ -168,9 +170,21 @@ Example 3.1:
 <p>*foo<kbd>*</kbd></p>
 ```
 
-Keyboard entry cannot contain any other inline elements, such as emphasis, images, links, or anything.
+Intraword keyboard entries are permitted, hence plain text can be interrupted by keyboard entries:
 
 Example 3.2:
+
+```markdown
+a key||bo||ard
+```
+
+```html
+<p>a key<kbd>bo</kbd>ard</p>
+```
+
+Keyboard entry pipe sequences have higher precedence than any other inline element apart from character references. As such, they cannot contain any inline element other than character references:
+
+Example 3.3:
 
 ```markdown
 ||*foo*||
@@ -178,4 +192,26 @@ Example 3.2:
 
 ```html
 <p><kbd>*foo*</kbd></p>
+```
+
+Example 3.4:
+
+```markdown
+||https://zestedesavoir.com/||
+```
+
+```html
+<p><kbd>https://zestedesavoir.com/</kbd></p>
+```
+
+However, character references are allowed inside of keyboard entries:
+
+Example 3.5:
+
+```markdown
+||&#35;||
+```
+
+```html
+<p><kbd>#</kbd></p>
 ```

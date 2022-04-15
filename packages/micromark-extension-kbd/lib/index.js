@@ -1,8 +1,5 @@
 import { markdownLineEnding } from 'micromark-util-character'
-import { splice } from 'micromark-util-chunked'
 import { codes } from 'micromark-util-symbol/codes.js'
-
-const shallow = o => Object.assign({}, o)
 
 export default function micromarkKbd (options = {}) {
   // By default, use the Unicode character U+124 (`|`)
@@ -10,61 +7,13 @@ export default function micromarkKbd (options = {}) {
 
   const call = {
     name: 'kbd',
-    tokenize: tokenizeFactory(unicodeChar),
-    resolveAll: resolveAllKbd
+    tokenize: tokenizeFactory(unicodeChar)
   }
 
   // Inject a hook called on the given character
   return {
     text: { [unicodeChar]: call }
   }
-}
-
-function resolveAllKbd (events, context) {
-  for (let i = 0; i < events.length; i++) {
-    const kbdCall = events[i]
-
-    // Find a `kbdCallString` end
-    if (kbdCall[1].type !== 'kbdCallString' || kbdCall[0] !== 'exit') continue
-
-    const potentialAdjacent = events[i + 1]
-
-    // Merge together adjacents `kbdCallString`
-    if (potentialAdjacent[1].type === 'kbdCallString' && potentialAdjacent[0] === 'enter') {
-      events[i - 1][1].end = shallow(events[i + 2][1].end)
-      events[i + 2][1].start = shallow(events[i - 1][1].start)
-
-      events.splice(i, 2)
-      i--
-
-      continue
-    }
-
-    // Take care of the special case `|||||` (five consecutive pipes)
-    if (events[i + 1][1]._hasExtra) {
-      events[i + 1][1].end._bufferIndex--
-      events[i + 1][1].end.column--
-      events[i + 1][1].end.offset--
-
-      events[i][1].end._bufferIndex++
-      events[i][1].end.column++
-      events[i][1].end.offset++
-    }
-
-    // Once everything has been merged, insert `data`
-    const data = {
-      type: 'data',
-      start: shallow(kbdCall[1].start),
-      end: shallow(kbdCall[1].end)
-    }
-
-    splice(events, i, 0, [['enter', data, context]])
-    splice(events, i + 1, 0, [['exit', data, context]])
-
-    i += 2
-  }
-
-  return events
 }
 
 function tokenizeFactory (charCode) {
@@ -94,6 +43,8 @@ function tokenizeFactory (charCode) {
 
       effects.consume(code)
       effects.exit('kbdCallDelimiter')
+      effects.enter('kbdCallString')
+      effects.enter('chunkString', { contentType: 'string' })
 
       return startContent
     }
@@ -108,7 +59,6 @@ function tokenizeFactory (charCode) {
         return nok(code)
       }
 
-      effects.enter('kbdCallString')
       effects.consume(code)
 
       return content
@@ -118,6 +68,7 @@ function tokenizeFactory (charCode) {
     function content (code) {
       // Allow one more pipe inside, but no more
       if (code === charCode) {
+        effects.exit('chunkString')
         effects.exit('kbdCallString')
         token = effects.enter('kbdCallDelimiter')
         effects.consume(code)
@@ -141,6 +92,8 @@ function tokenizeFactory (charCode) {
       // Not a pipe? Switch back to content
       if (code !== charCode) {
         token.type = 'kbdCallString'
+        effects.enter('chunkString', { contentType: 'string' })
+
         return content(code)
       }
 

@@ -16,7 +16,10 @@ const specificationTests = {
   'space isn\'t content': ['|| ||', '<p>|| ||</p>'],
   'escaped': ['\\||a||', '<p>||a||</p>'],
   'has precedence': ['*foo||*||', '<p>*foo<kbd>*</kbd></p>'],
-  'cannot contain inline': ['||*foo*||', '<p><kbd>*foo*</kbd></p>']
+  'intraword': ['a key||bo||ard', '<p>a key<kbd>bo</kbd>ard</p>'],
+  'cannot contain inline - emphasis': ['||*foo*||', '<p><kbd>*foo*</kbd></p>'],
+  'cannot contain inline - autolink': ['||https://zestedesavoir.com/||', '<p><kbd>https://zestedesavoir.com/</kbd></p>'],
+  'can contain references': ['||&#35;||', '<p><kbd>#</kbd></p>']
 }
 
 const renderString = (fixture) =>
