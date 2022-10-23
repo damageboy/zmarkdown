@@ -7,7 +7,7 @@ on:
     branches: [master, next]
 
 env:
-  NODE_VERSION: "14"
+  NODE_VERSION: "16"
 
 jobs:
   lint:
@@ -37,7 +37,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [14.x, 16.x, 18.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -61,6 +61,6 @@ jobs:
 
       - name: Update coverage report
         uses: coverallsapp/github-action@master
-        if: matrix.node-version == '14.x'
+        if: matrix.node-version == '16.x'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
