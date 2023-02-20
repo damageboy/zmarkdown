@@ -5,7 +5,13 @@ It adds a new node type to the [mdast][mdast] produced by [remark][remark]: `ifr
 
 If you are using [rehype][rehype], the stringified HTML result will be a tag you can configure. Most of time you want `iframe`.
 
-## iframe node type
+## Syntax
+
+```markdown
+!(https://www.youtube.com/watch?v=8TQIvdFl4aU)
+```
+
+## AST (see [mdast][mdast] specification)
 
 ```javascript
 interface iframe <: Node {
@@ -27,12 +33,6 @@ interface iframe <: Node {
 ```
 
 `provider` variable refers to the provider as configured in plugin options.
-
-## Syntax
-
-```markdown
-!(https://www.youtube.com/watch?v=8TQIvdFl4aU)
-```
 
 ## Installation
 
@@ -82,7 +82,7 @@ unified()
   .use(stringify)
 ```
 
-## Configuration
+### Configuration
 
 This plugin can take the `providers` option, which contains a list of providers allowed for iframes. Any of the given providers object can have the following fields:
 
@@ -173,7 +173,7 @@ The thumbnail is constructed from the oEmbed `thumbnail_url` response, so there 
 
 [coverage-status]: https://coveralls.io/github/zestedesavoir/zmarkdown
 
-[license]: https://github.com/zestedesavoir/zmarkdown/blob/master/packages/remark-iframes/LICENSE-MIT
+[license]: https://github.com/zestedesavoir/zmarkdown/blob/master/packages/remark-iframes/LICENSE
 
 [zds]: https://zestedesavoir.com
 

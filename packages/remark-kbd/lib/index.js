@@ -5,13 +5,11 @@ function fromMarkdown () {
   function enterKbdData (token) {
     this.enter({
       type: 'kbd',
-      value: null,
       data: {
         hName: 'kbd'
       },
       children: []
-    },
-    token)
+    }, token)
   }
 
   function exitKbdData (token) {

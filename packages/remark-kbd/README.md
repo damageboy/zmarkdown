@@ -37,10 +37,6 @@ Yields:
 }
 ```
 
-## Rehype
-
-This plugin is compatible with [rehype][rehype]. `Kbd` mdast nodes will become `<kbd>contents</kbd>`.
-
 ## Installation
 
 [npm][npm]:
@@ -85,7 +81,7 @@ unified()
 
 [coverage-status]: https://coveralls.io/github/zestedesavoir/zmarkdown
 
-[license]: https://github.com/zestedesavoir/zmarkdown/blob/master/packages/remark-kbd/LICENSE-MIT
+[license]: https://github.com/zestedesavoir/zmarkdown/blob/master/packages/remark-kbd/LICENSE
 
 [zds]: https://zestedesavoir.com
 

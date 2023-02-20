@@ -34,7 +34,7 @@
   "license": "MIT",
   "dependencies": {
     "micromark-extension-ping": "file:../micromark-extension-ping",
-    "unist-util-visit": "^4.1.0"
+    "unist-util-visit": "^4.1.2"
   },
   "devDependencies": {
     "abort-controller": "^3.0.0",

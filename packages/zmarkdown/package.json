@@ -30,8 +30,8 @@
     "watch": "jest --watch",
     "server": "pm2 start -f server/index.js -i 3 --max-memory-restart 150M",
     "stop": "pm2 kill",
-    "watch:client": "cross-env NODE_ENV=development parallel-webpack --watch --info-verbosity=verbose",
-    "release": "parallel-webpack"
+    "watch:client": "cross-env NODE_ENV=development webpack --watch --info-verbosity=verbose",
+    "release": "webpack"
   },
   "engines": {
     "node": ">=10.0.0"
@@ -108,7 +108,6 @@
     "axios": "^0.21.1",
     "cross-env": "^7.0.3",
     "dedent": "^0.7.0",
-    "parallel-webpack": "^2.6.0",
     "webpack": "^5.31.2",
     "webpack-cli": "^4.6.0",
     "xtend": "^4.0.2"

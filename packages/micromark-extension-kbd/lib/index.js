@@ -1,4 +1,4 @@
-import { markdownLineEnding } from 'micromark-util-character'
+import { markdownLineEnding, markdownSpace } from 'micromark-util-character'
 import { codes } from 'micromark-util-symbol/codes.js'
 
 export default function micromarkKbd (options = {}) {
@@ -52,7 +52,7 @@ function tokenizeFactory (charCode) {
     // Define a state `startContent` to prevent keyboard entries from starting with a space
     function startContent (code) {
       // Space before? Invalid sequence
-      if (code === codes.space) return nok(code)
+      if (markdownSpace(code)) return nok(code)
 
       // Forbid EOL and EOF
       if (code === codes.eof || markdownLineEnding(code)) {
@@ -98,7 +98,7 @@ function tokenizeFactory (charCode) {
       }
 
       // Space after? Invalid sequence
-      if (previous === codes.space) return nok(code)
+      if (markdownSpace(previous)) return nok(code)
 
       effects.consume(code)
 

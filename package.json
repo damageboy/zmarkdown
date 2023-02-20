@@ -3,67 +3,29 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "bootstrap": "lerna bootstrap",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest packages/remark-kbd packages/remark-iframes packages/micromark-extension-kbd packages/micromark-extension-iframes",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest packages/remark-kbd packages/remark-iframes packages/remark-ping packages/micromark-extension-kbd packages/micromark-extension-iframes packages/micromark-extension-ping",
     "lint": "eslint .",
     "build": "lerna run build",
     "build-demo": "lerna run release --scope zmarkdown && del-cli ./packages/zmarkdown/public/js && cp -r ./packages/zmarkdown/client/dist ./packages/zmarkdown/public/js"
   },
   "engines": {
-    "node": ">=12",
-    "npm": ">=7"
-  },
-  "dependencies": {
-    "mdast-util-split-by-heading": "file:packages/mdast-util-split-by-heading",
-    "micromark": "^3.0.10",
-    "rebber": "file:packages/rebber",
-    "rebber-plugins": "file:packages/rebber-plugins",
-    "rehype-footnotes-title": "file:packages/rehype-footnotes-title",
-    "rehype-html-blocks": "file:packages/rehype-html-blocks",
-    "rehype-postfix-footnote-anchors": "file:packages/rehype-postfix-footnote-anchors",
-    "remark-abbr": "file:packages/remark-abbr",
-    "remark-align": "file:packages/remark-align",
-    "remark-captions": "file:packages/remark-captions",
-    "remark-comments": "file:packages/remark-comments",
-    "remark-custom-blocks": "file:packages/remark-custom-blocks",
-    "remark-disable-tokenizers": "file:packages/remark-disable-tokenizers",
-    "remark-emoticons": "file:packages/remark-emoticons",
-    "remark-escape-escaped": "file:packages/remark-escape-escaped",
-    "remark-fix-guillemets": "file:packages/remark-fix-guillemets",
-    "remark-grid-tables": "file:packages/remark-grid-tables",
-    "remark-heading-shift": "file:packages/remark-heading-shift",
-    "remark-heading-trailing-spaces": "file:packages/remark-heading-trailing-spaces",
-    "remark-iframes": "file:packages/remark-iframes",
-    "remark-images-download": "file:packages/remark-images-download",
-    "remark-kbd": "file:packages/remark-kbd",
-    "remark-numbered-footnotes": "file:packages/remark-numbered-footnotes",
-    "remark-ping": "file:packages/remark-ping",
-    "remark-stringify": "^10.0.2",
-    "remark-sub-super": "file:packages/remark-sub-super",
-    "typographic-colon": "file:packages/typographic-colon",
-    "typographic-em-dash": "file:packages/typographic-em-dash",
-    "typographic-exclamation-mark": "file:packages/typographic-exclamation-mark",
-    "typographic-guillemets": "file:packages/typographic-guillemets",
-    "typographic-percent": "file:packages/typographic-percent",
-    "typographic-permille": "file:packages/typographic-permille",
-    "typographic-question-mark": "file:packages/typographic-question-mark",
-    "typographic-semicolon": "file:packages/typographic-semicolon",
-    "zmarkdown": "file:packages/zmarkdown"
+    "node": ">=18",
+    "npm": ">=9"
   },
   "devDependencies": {
-    "@babel/cli": "^7.17.6",
-    "@babel/core": "^7.17.8",
-    "@babel/plugin-transform-modules-commonjs": "^7.17.7",
-    "@babel/preset-env": "^7.16.11",
+    "@babel/cli": "^7.20.7",
+    "@babel/core": "^7.20.12",
+    "@babel/plugin-transform-modules-commonjs": "^7.20.11",
+    "@babel/preset-env": "^7.20.2",
     "cross-env": "^7.0.3",
-    "del-cli": "^4.0.1",
-    "eslint": "^7.24.0",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.25.4",
+    "del-cli": "^5.0.0",
+    "eslint": "^8.34.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.0.0",
-    "jest": "^27.5.1",
-    "lerna": "^4.0.0"
+    "eslint-plugin-promise": "^6.1.1",
+    "jest": "^29.4.3",
+    "lerna": "^6.5.1"
   },
   "jest": {
     "testPathIgnorePatterns": [
@@ -81,7 +43,10 @@
       "packages/zmarkdown/*.js",
       "!**/*.config.js"
     ],
-    "transform": {}
+    "transform": {},
+    "snapshotFormat": {
+      "escapeString": true
+    }
   },
   "standard": {
     "ignore": [
@@ -93,5 +58,8 @@
       "packages/zmarkdown/webpack.config.js",
       "packages/**/node_modules/"
     ]
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

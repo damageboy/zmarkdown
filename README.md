@@ -8,20 +8,17 @@ This repository contains all the plugins for ZMarkdown, the Markdown engine powe
 It is a collection of packages extending the [**remark** processor][processor] and its [**MDAST**][mdast] syntax tree, [**rehype**][rehype] (for HTML processing) and [**textr**][textr] (text transformation framework).
 It also provides [**MDAST**][mdast] to LaTeX compilation via [**rebber**][rebber] (and its [plugins][rebber-plugins]).
 
-Currently, all the plugins provided only work for remark versions **lesser than** 13.0.0 (i.e. previous to [**micromark**][micromark]). While we intend to switch to the new system, no due date has been planned, and it requires a significant amount of work, so please be patient, or, even better, help us making the switch!
-
 ## Install
 
 ### Prerequisites
 
-* node >= 12
-* npm >= 7
+* node >= 18
+* npm >= 9
 
 ### Installation
 
 1. `git clone git@github.com:zestedesavoir/zmarkdown.git`
 1. `npm install`
-1. `npm run bootstrap`
 
 This project uses [Jest][jest] for testing. It is recommended to use the locally installed version using `npx`, and run Jest in watch mode when developing `npx jest --watch --notify` (`--notify` sends desktop notifications when tests run).
 

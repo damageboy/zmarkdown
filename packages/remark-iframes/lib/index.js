@@ -34,6 +34,7 @@ function fromMarkdown () {
     // This src is used for compiling to Markdown
     // and to resolve embed links.
     context.src = src
+    context.data.hProperties.src = src
 
     this.exit(token)
   }
